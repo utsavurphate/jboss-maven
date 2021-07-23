@@ -1,22 +1,19 @@
-FROM jboss/base-jdk:8
+  
+FROM centos:7
+MAINTAINER Marek Goldmann <mgoldman@redhat.com>
 
-MAINTAINER Andrew Lee Rubinger (https://github.com/ALRubinger)
+# Install packages necessary to run EAP
+RUN yum update -y && yum -y install xmlstarlet saxon augeas bsdtar unzip && yum clean all
 
-USER root
+# Create a user and group used to launch processes
+# The user ID 1000 is the default for the first "regular" user on Fedora/RHEL,
+# so there is a high chance that this ID will be equal to the current user
+# making it easier to use volumes (no permission issues)
+RUN groupadd -r jboss -g 1000 && useradd -u 1000 -r -g jboss -m -d /opt/jboss -s /sbin/nologin -c "JBoss user" jboss && \
+    chmod 755 /opt/jboss
 
-# Install Maven
-RUN yum install -y wget && \
-    wget --no-verbose -O /tmp/apache-maven-3.3.9.tar.gz http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz && \
-    echo "516923b3955b6035ba6b0a5b031fbd8b /tmp/apache-maven-3.3.9.tar.gz" | md5sum -c && \
-    tar xzf /tmp/apache-maven-3.3.9.tar.gz -C /opt/ && \
-    ln -s /opt/apache-maven-3.3.9 /opt/maven && \
-    ln -s /opt/maven/bin/mvn /usr/local/bin && \
-    rm -f /tmp/apache-maven-3.3.9.tar.gz && \
-    yum clean all
+# Set the working directory to jboss' user home directory
+WORKDIR /opt/jboss
 
-ENV MAVEN_HOME=/opt/maven M2_HOME=/opt/maven
-
-USER jboss 
-
-# Dump to bash
-CMD ["bash"]
+# Specify the user which should be used to execute all commands below
+USER jboss
