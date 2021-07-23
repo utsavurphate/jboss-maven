@@ -1,4 +1,4 @@
-FROM jboss/base-jdk:11
+FROM jboss/base-jdk:7
 
 MAINTAINER Andrew Lee Rubinger (https://github.com/ALRubinger)
 
